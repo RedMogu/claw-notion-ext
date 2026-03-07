@@ -116,30 +116,41 @@
       // 动作3：监听 WebSocket 接收到的消息
       ws.onmessage = (e) => {
         console.log('%c[Gateway 原始消息]', 'background: #222; color: #bada55; font-size: 16px; font-weight: bold;', e.data);
-        appendMessage('Gateway [Raw]: ' + e.data, '#bada55');
-
+        
         try {
           const parsed = JSON.parse(e.data);
-          if (parsed.type === "event" && parsed.event === "connect.challenge") {
-            const nonce = parsed.payload?.nonce || parsed.nonce;
-            appendMessage('[System]: 收到 connect.challenge，发送 connect.reply 握手包', '#55aaff');
-            // Try matching OpenClaw Gateway strict schema
-            ws.send(JSON.stringify({
-              type: "action",
-              action: "connect.reply",
-              payload: { nonce: nonce }
-            }));
+          if (parsed.type === "response" && parsed.id === "1" && parsed.result?.protocol) {
+            console.log("Gateway Handshake Accepted!", parsed.result);
+            isEstablished = true;
+            appendMessage('[System]: Gateway 握手成功！', '#55ff55');
             return;
           }
-        } catch(err) {
-          // ignore
-        }
+        } catch(err) {}
+
+        appendMessage('Server: ' + e.data, '#00aa00');
       };
 
       ws.onopen = () => {
         isEstablished = false;
-        appendMessage('[System]: WebSocket 已连接 (' + wsUrl + ')', '#55ff55');
-        // 添加心跳
+        appendMessage(`[System]: WebSocket 已连接 (${wsUrl})`, '#55aaff');
+        
+        // Send proper OpenClaw Connect Request
+        ws.send(JSON.stringify({
+          type: "request",
+          id: "1",
+          method: "connect",
+          params: {
+            minProtocol: 1,
+            maxProtocol: 1,
+            client: {
+              id: "webchat",
+              version: "1.0",
+              platform: "browser",
+              mode: "webchat"
+            }
+          }
+        }));
+
         pingInterval = setInterval(() => {
           if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: "ping" }));
