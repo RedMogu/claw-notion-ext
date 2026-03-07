@@ -11,6 +11,7 @@
     let ws = null;
     let pingInterval = null;
     let reconnectTimeout = null;
+    setTimeout(() => { isEstablished = true; }, 500);
 
     const container = document.createElement('div');
     container.id = 'openclaw-console';
@@ -120,7 +121,12 @@
         try {
           const parsed = JSON.parse(e.data);
           if (parsed.type === "event" && parsed.event === "connect.challenge") {
-            appendMessage('[System]: 收到 connect.challenge，作为心跳忽略', '#aaaaaa');
+            const nonce = parsed.payload?.nonce || parsed.nonce;
+            appendMessage('[System]: 收到 connect.challenge，发送 connect.reply 握手包', '#55aaff');
+            ws.send(JSON.stringify({
+              action: "connect.reply",
+              nonce: nonce
+            }));
             return;
           }
         } catch(err) {
@@ -129,6 +135,7 @@
       };
 
       ws.onopen = () => {
+        isEstablished = false;
         appendMessage('[System]: WebSocket 已连接 (' + wsUrl + ')', '#55ff55');
         // 添加心跳
         pingInterval = setInterval(() => {
