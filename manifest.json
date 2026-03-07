@@ -1,20 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "Claw-Notion",
-  "version": "1.0.3",
-  "description": "Project Claw-Notion Extension",
+  "name": "Claw Notion Ext",
+  "version": "1.0.13",
+  "description": "Integration with OpenClaw Gateway for Notion",
   "permissions": [
+    "storage",
     "activeTab",
-    "storage"
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://*.notion.so/*",
+    "http://*/*",
+    "https://*/*",
+    "ws://*/*",
+    "wss://*/*"
   ],
   "options_page": "options.html",
-  "host_permissions": [
-    "*://*.notion.so/*"
-  ],
   "content_scripts": [
     {
       "matches": ["*://*.notion.so/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_end"
     }
   ]
 }
