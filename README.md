@@ -41,3 +41,9 @@ Since this extension communicates via private Tailscale networks, it is not dist
 - **v1.0.17**: Changed WebSocket keep-alive RPC method to `health` to prevent backend validation errors.
 - **v1.0.16**: Implemented `sessionKey: "agent:main:notion"` isolation.
 - **v1.0.15**: Added client-side filtering to gracefully ignore `ping-*` responses from the Gateway without polluting the UI.
+
+## 🐛 Troubleshooting & Known Gotchas (Developer Notes)
+If you decide to fork or modify this extension, keep these OpenClaw Gateway specifics in mind:
+1. **JSON-RPC Format**: All messages sent to the Gateway must follow the `{ type: "req", id: "...", method: "..." }` pattern. Sending raw events from the client will result in an `INVALID_REQUEST` error.
+2. **Heartbeats**: The correct method for keeping the WebSocket alive is `health` (not `ping`). Also, remember to filter out the `health` responses (`type: "res"`) so they don't get accidentally rendered as incoming chat messages.
+3. **Session Keys**: By default, Gateway events are broadcast. Always explicitly pass a unique `sessionKey` in your `chat.send` params, and **always filter** incoming events by that same `sessionKey` to prevent other clients' chat logs from leaking into Notion.
