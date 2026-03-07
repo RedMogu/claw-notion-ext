@@ -143,10 +143,10 @@
             minProtocol: 3,
             maxProtocol: 3,
             client: {
-              id: "openclaw-control-ui",
+              id: "gateway-client",
               version: "1.0",
               platform: "browser",
-              mode: ["ui"]
+              mode: "backend"
             },
             auth: {
               token: items.authToken
