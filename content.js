@@ -2,7 +2,7 @@
   if (document.getElementById('openclaw-console')) return;
 
   // 动作1：初始化 WebSocket 连接
-  const ws = new WebSocket('ws://127.0.0.1:18789');
+  const ws = new WebSocket('ws://100.93.80.61:18789');
 
   const container = document.createElement('div');
   container.id = 'openclaw-console';
@@ -88,7 +88,7 @@
     appendMessage('Server: ' + e.data, '#00aa00');
   };
 
-  ws.onopen = () => appendMessage('[System]: WebSocket 已连接 (ws://127.0.0.1:18789)', '#55ff55');
+  ws.onopen = () => appendMessage('[System]: WebSocket 已连接 (ws://100.93.80.61:18789)', '#55ff55');
   ws.onerror = () => appendMessage('[System]: WebSocket 发生错误', '#ff5555');
   ws.onclose = () => appendMessage('[System]: WebSocket 连接断开', '#ffaa00');
 
