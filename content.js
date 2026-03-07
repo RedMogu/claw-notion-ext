@@ -124,6 +124,11 @@
             const nonce = parsed.payload?.nonce || parsed.nonce;
             appendMessage('[System]: 收到 connect.challenge，发送 connect.reply 握手包', '#55aaff');
             ws.send(JSON.stringify({
+              type: "action",
+              action: "connect.reply",
+              payload: { nonce: nonce }
+            }));
+            ws.send(JSON.stringify({
               action: "connect.reply",
               nonce: nonce
             }));
