@@ -7,8 +7,10 @@
       const separator = wsUrl.includes('?') ? '&' : '?';
       wsUrl += separator + 'token=' + items.authToken;
     }
-    // 动作1：初始化 WebSocket 连接
-    const ws = new WebSocket(wsUrl);
+
+    let ws = null;
+    let pingInterval = null;
+    let reconnectTimeout = null;
 
     const container = document.createElement('div');
     container.id = 'openclaw-console';
@@ -79,7 +81,7 @@
         const text = textarea.value.trim();
         if (text) {
           appendMessage('You: ' + text, '#aaaaaa');
-          if (ws.readyState === WebSocket.OPEN) {
+          if (ws && ws.readyState === WebSocket.OPEN) {
             ws.send(text);
           } else {
             appendMessage('[System]: WebSocket 未连接', '#ff5555');
@@ -89,14 +91,52 @@
       }
     });
 
-    // 动作3：监听 WebSocket 接收到的消息
-    ws.onmessage = (e) => {
-      appendMessage('Server: ' + e.data, '#00aa00');
-    };
+    function connectWebSocket() {
+      if (pingInterval) {
+        clearInterval(pingInterval);
+        pingInterval = null;
+      }
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
 
-    ws.onopen = () => appendMessage('[System]: WebSocket 已连接 (' + wsUrl + ')', '#55ff55');
-    ws.onerror = () => appendMessage('[System]: WebSocket 发生错误', '#ff5555');
-    ws.onclose = () => appendMessage('[System]: WebSocket 连接断开', '#ffaa00');
+      ws = new WebSocket(wsUrl);
+
+      // 动作3：监听 WebSocket 接收到的消息
+      ws.onmessage = (e) => {
+        appendMessage('Server: ' + e.data, '#00aa00');
+      };
+
+      ws.onopen = () => {
+        appendMessage('[System]: WebSocket 已连接 (' + wsUrl + ')', '#55ff55');
+        // 添加心跳
+        pingInterval = setInterval(() => {
+          if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: "ping" }));
+          }
+        }, 30000);
+      };
+
+      ws.onerror = () => {
+        appendMessage('[System]: WebSocket 发生错误', '#ff5555');
+      };
+
+      ws.onclose = () => {
+        appendMessage('[System]: WebSocket 连接断开', '#ffaa00');
+        if (pingInterval) {
+          clearInterval(pingInterval);
+          pingInterval = null;
+        }
+        // 重连机制
+        appendMessage('[System]: 尝试在 3 秒后重连...', '#ffaa00');
+        reconnectTimeout = setTimeout(() => {
+          connectWebSocket();
+        }, 3000);
+      };
+    }
+
+    connectWebSocket();
 
     container.appendChild(header);
     container.appendChild(historyDiv);
