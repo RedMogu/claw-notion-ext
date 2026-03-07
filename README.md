@@ -18,14 +18,14 @@ The extension is pre-configured to connect to the Gateway at `ws://100.93.80.61:
 ### 1. Download the Code
 Clone or download this repository to your local machine:
 ```bash
-git clone https://github.com/RedMogu/molt-notion-ext.git
+git clone https://github.com/RedMogu/claw-notion-ext.git
 ```
 
 ### 2. Load into Chrome
 1. Open Google Chrome and navigate to `chrome://extensions/`.
 2. Turn on **Developer mode** in the top right corner.
 3. Click **Load unpacked** in the top left corner.
-4. Select the `molt-notion-ext` folder you just downloaded.
+4. Select the `claw-notion-ext` folder you just downloaded.
 5. Make sure the extension is toggled ON.
 
 ### 3. Usage
