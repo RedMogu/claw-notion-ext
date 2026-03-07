@@ -1,8 +1,12 @@
 (function() {
   if (document.getElementById('openclaw-console')) return;
 
-  chrome.storage.local.get({ gatewayUrl: 'ws://100.93.80.61:18789' }, (items) => {
-    const wsUrl = items.gatewayUrl;
+  chrome.storage.local.get({ gatewayUrl: 'ws://100.93.80.61:18789', authToken: '' }, (items) => {
+    let wsUrl = items.gatewayUrl;
+    if (items.authToken) {
+      const separator = wsUrl.includes('?') ? '&' : '?';
+      wsUrl += separator + 'token=' + items.authToken;
+    }
     // 动作1：初始化 WebSocket 连接
     const ws = new WebSocket(wsUrl);
 
