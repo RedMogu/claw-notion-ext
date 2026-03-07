@@ -119,13 +119,16 @@
         
         try {
           const parsed = JSON.parse(e.data);
-          if (parsed.type === "response" && parsed.id === "1" && parsed.result?.protocol) {
-            console.log("Gateway Handshake Accepted!", parsed.result);
+          if (parsed.type === "res" && parsed.id === "1" && parsed.payload?.protocol) {
+            console.log("Gateway Handshake Accepted!", parsed.payload);
             isEstablished = true;
             appendMessage('[System]: Gateway 握手成功！', '#55ff55');
             return;
           }
+          if (parsed.type === "event" && ["connect.challenge", "tick", "health", "presence"].includes(parsed.event)) return;
         } catch(err) {}
+
+        if (!isEstablished) return;
 
         appendMessage('Server: ' + e.data, '#00aa00');
       };
