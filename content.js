@@ -146,10 +146,10 @@
             minProtocol: 3,
             maxProtocol: 3,
             client: {
-              id: "gateway-client",
+              id: "webchat-ui",
               version: "1.0",
               platform: "browser",
-              mode: "backend"
+              mode: "ui"
             },
             auth: {
               token: items.authToken
