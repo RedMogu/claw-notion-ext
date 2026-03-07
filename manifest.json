@@ -4,8 +4,10 @@
   "version": "1.0",
   "description": "Project Molt-Notion Extension",
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage"
   ],
+  "options_page": "options.html",
   "host_permissions": [
     "*://*.notion.so/*"
   ],
