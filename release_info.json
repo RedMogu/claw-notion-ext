@@ -40,5 +40,5 @@
   ],
   "tarball_url": "https://api.github.com/repos/RedMogu/claw-notion-ext/tarball/v1.0.1",
   "zipball_url": "https://api.github.com/repos/RedMogu/claw-notion-ext/zipball/v1.0.1",
-  "body": "Hotfix for OpenClaw Molt for Notion.\n\n- Added `Auth Token` field in plugin options.\n- Fixed WebSocket connection rejected due to missing auth token.\n- Auto-append `?token=` parameter to ws payload."
+  "body": "Hotfix for OpenClaw Claw for Notion.\n\n- Added `Auth Token` field in plugin options.\n- Fixed WebSocket connection rejected due to missing auth token.\n- Auto-append `?token=` parameter to ws payload."
 }

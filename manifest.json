@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Molt-Notion",
-  "version": "1.0.2",
-  "description": "Project Molt-Notion Extension",
+  "name": "Claw-Notion",
+  "version": "1.0.3",
+  "description": "Project Claw-Notion Extension",
   "permissions": [
     "activeTab",
     "storage"

@@ -1,4 +1,4 @@
-# OpenClaw Molt - Notion Web Hijack Extension
+# OpenClaw Claw - Notion Web Hijack Extension
 
 This Chrome Extension acts as a "Trojan Horse" to bring your personal Sovereign AI ([OpenClaw](https://openclaw.ai)) directly into the corporate environment by hijacking the `notion.so` frontend interface.
 
@@ -40,4 +40,4 @@ If your OpenClaw Gateway is hosted on a different IP or port, you need to modify
 1. Open `content.js` in a text editor.
 2. Find the line: `const ws = new WebSocket('ws://100.93.80.61:18789');`
 3. Replace the IP/Port with your own Gateway endpoint.
-4. Go back to `chrome://extensions/` and click the **Reload** button on the Molt-Notion extension card to apply changes.
+4. Go back to `chrome://extensions/` and click the **Reload** button on the Claw-Notion extension card to apply changes.

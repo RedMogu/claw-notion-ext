@@ -82,7 +82,16 @@
         if (text) {
           appendMessage('You: ' + text, '#aaaaaa');
           if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(text);
+            const payload = {
+                jsonrpc: "2.0",
+                method: "messages/create",
+                params: {
+                    content: text
+                },
+                id: Date.now()
+            };
+            console.log('%c[发送到 Gateway]', 'background: #222; color: #f39c12; font-size: 16px; font-weight: bold;', payload);
+            ws.send(JSON.stringify(payload));
           } else {
             appendMessage('[System]: WebSocket 未连接', '#ff5555');
           }
@@ -105,7 +114,18 @@
 
       // 动作3：监听 WebSocket 接收到的消息
       ws.onmessage = (e) => {
-        appendMessage('Server: ' + e.data, '#00aa00');
+        console.log('%c[Gateway 原始消息]', 'background: #222; color: #bada55; font-size: 16px; font-weight: bold;', e.data);
+        appendMessage('Gateway [Raw]: ' + e.data, '#bada55');
+
+        try {
+          const parsed = JSON.parse(e.data);
+          if (parsed.type === "event" && parsed.event === "connect.challenge") {
+            appendMessage('[System]: 收到 connect.challenge，作为心跳忽略', '#aaaaaa');
+            return;
+          }
+        } catch(err) {
+          // ignore
+        }
       };
 
       ws.onopen = () => {
