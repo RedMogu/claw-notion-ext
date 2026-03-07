@@ -85,9 +85,10 @@
           if (ws && ws.readyState === WebSocket.OPEN) {
             const payload = {
                 jsonrpc: "2.0",
-                method: "messages/create",
+                method: "chat.send",
                 params: {
-                    content: text
+                    message: text,
+                    sessionKey: "agent:main:notion"
                 },
                 id: Date.now()
             };
