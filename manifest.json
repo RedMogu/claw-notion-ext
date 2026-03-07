@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Claw Notion Ext",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Integration with OpenClaw Gateway for Notion",
   "permissions": [
     "storage",

@@ -159,7 +159,7 @@
 
         pingInterval = setInterval(() => {
           if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: "ping" }));
+            ws.send(JSON.stringify({ type: "req", id: "ping-" + Date.now(), method: "ping" }));
           }
         }, 30000);
       };
