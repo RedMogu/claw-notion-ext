@@ -126,6 +126,7 @@
             return;
           }
           if (parsed.type === "event" && ["connect.challenge", "tick", "health", "presence"].includes(parsed.event)) return;
+          if (parsed.type === "res" && typeof parsed.id === "string" && parsed.id.startsWith("ping-")) return;
         } catch(err) {}
 
         if (!isEstablished) return;
