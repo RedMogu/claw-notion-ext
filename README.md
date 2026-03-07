@@ -1,43 +1,43 @@
-# OpenClaw Claw - Notion Web Hijack Extension
+# OpenClaw Claw - Notion Extension
 
-This Chrome Extension acts as a "Trojan Horse" to bring your personal Sovereign AI ([OpenClaw](https://openclaw.ai)) directly into the corporate environment by hijacking the `notion.so` frontend interface.
+A Chrome/Brave extension that injects your [OpenClaw](https://openclaw.ai) Sovereign AI directly into your Notion workspace.
 
-Instead of relying on the limited and slow Notion API, this extension injects an invisible WebSocket client and a custom, draggable UI console directly into the Notion DOM. It establishes a real-time, zero-latency link between the browser tab and your OpenClaw Gateway.
+It establishes a direct **WebSocket** connection to your remote OpenClaw Gateway (typically over Tailscale), allowing you to interact with your personal AI Butler directly from the Notion interface without relying on cloud-based API syncing.
 
 ## 🚀 Features
 
-- **Frontend Takeover**: Activates automatically when you visit `*.notion.so`.
-- **Floating Console**: Injects a draggable, cyberpunk-styled UI (OpenClaw Console) into the bottom right corner of the page.
-- **WebSocket Direct Link**: Connects directly to your remote Gateway via Tailscale or public IP.
-- **Real-time Chat**: Send commands to your AI using `Enter` (use `Shift+Enter` for newlines). Gateway responses append instantly in the console.
+- **Direct WebSocket Link**: Connects directly to your OpenClaw Gateway using standard JSON-RPC.
+- **Session Isolation**: Defaults to an isolated session key (`agent:main:notion`) so your workspace chats do not leak into your primary messenger (WhatsApp, Telegram, etc.).
+- **Robust Keep-Alive**: Automatically maintains connection health with the Gateway via the `health` protocol, ensuring no connection drops.
 
-## 🛠️ Installation & Setup (Tailscale Environment)
+## 🛠️ Installation & Setup (Developer Mode)
 
-The extension is pre-configured to connect to the Gateway at `ws://100.93.80.61:18789`. You must be on the same Tailscale network to use this default setup.
+Since this extension communicates via private Tailscale networks, it is not distributed on the Chrome Web Store. You must install it manually.
 
-### 1. Download the Code
-Clone or download this repository to your local machine:
-```bash
-git clone https://github.com/RedMogu/claw-notion-ext.git
-```
+### 1. Prerequisites
+- [Tailscale](https://tailscale.com/) installed and connected.
+- Your OpenClaw Gateway running and bound to a local/Tailscale IP (`gateway.bind: "lan"`).
 
-### 2. Load into Chrome
-1. Open Google Chrome and navigate to `chrome://extensions/`.
-2. Turn on **Developer mode** in the top right corner.
-3. Click **Load unpacked** in the top left corner.
-4. Select the `claw-notion-ext` folder you just downloaded.
-5. Make sure the extension is toggled ON.
+### 2. Download
+1. Go to the [Releases](https://github.com/RedMogu/claw-notion-ext/releases) page.
+2. Download the latest `claw-notion-ext-vX.X.X.tar.gz`.
+3. Extract the contents into a folder (e.g., `claw-notion-ext`).
 
-### 3. Usage
-1. Make sure your computer is connected to Tailscale.
-2. Open any page on `https://www.notion.so`.
-3. Look at the bottom right corner of your screen—you will see the **OpenClaw 控制台** (Console).
-4. Drag the console header to move it around.
-5. Type your command in the text area and press `Enter` to send it to your Gateway.
+### 3. Load into Browser
+1. Open Chrome or Brave and go to `chrome://extensions/`.
+2. Turn on **Developer mode** (toggle in the top right corner).
+3. Click **Load unpacked**.
+4. Select the `claw-notion-ext` folder you just extracted.
 
-## 🔧 Configuration (Changing the IP)
-If your OpenClaw Gateway is hosted on a different IP or port, you need to modify the extension code before loading it:
-1. Open `content.js` in a text editor.
-2. Find the line: `const ws = new WebSocket('ws://100.93.80.61:18789');`
-3. Replace the IP/Port with your own Gateway endpoint.
-4. Go back to `chrome://extensions/` and click the **Reload** button on the Claw-Notion extension card to apply changes.
+### 4. Configure Extension
+1. Once installed, click the puzzle piece icon 🧩 in your browser toolbar and click the **OpenClaw** extension to open its Options page.
+2. Set your **Gateway URL** (e.g., `ws://100.x.y.z:18789`).
+3. Set your **Gateway Auth Token**.
+4. Set your **Session Key** (default: `agent:main:notion`).
+5. Click **Save**.
+6. Refresh any open Notion tabs. The extension will automatically connect to your AI!
+
+## 🔄 Recent Updates
+- **v1.0.17**: Changed WebSocket keep-alive RPC method to `health` to prevent backend validation errors.
+- **v1.0.16**: Implemented `sessionKey: "agent:main:notion"` isolation.
+- **v1.0.15**: Added client-side filtering to gracefully ignore `ping-*` responses from the Gateway without polluting the UI.
