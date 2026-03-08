@@ -82,12 +82,16 @@
 
         const text = textarea.value.trim();
         const selectedDOMText = window.getSelection().toString().trim();
+        const currentUrl = window.location.href;
+        const currentTitle = document.title;
         let finalMessage = text;
 
         if (selectedDOMText && text) {
-             finalMessage = `${text}\n\n[Selected Context from Webpage]:\n"""\n${selectedDOMText}\n"""`;
+             finalMessage = `${text}\n\n[Context from ${currentTitle} (${currentUrl})]:\n"""\n${selectedDOMText}\n"""`;
         } else if (selectedDOMText && !text) {
-             finalMessage = `Please explain or summarize this:\n\n"""\n${selectedDOMText}\n"""`;
+             finalMessage = `Please explain or summarize this:\n\n[Context from ${currentTitle} (${currentUrl})]:\n"""\n${selectedDOMText}\n"""`;
+        } else if (text && !selectedDOMText) {
+             finalMessage = `${text}\n\n[User is currently viewing: ${currentTitle} (${currentUrl})]`;
         }
 
         if (finalMessage) {
