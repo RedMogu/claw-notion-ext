@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Claw-Notion Options</title>
+    <title>OpenClaw Universal Options</title>
     <style>
         body { padding: 10px; font-family: sans-serif; }
         label { display: block; margin-bottom: 5px; }
@@ -12,8 +12,10 @@
 <body>
     <label for="gatewayUrl">Gateway WebSocket URL:</label>
     <input type="text" id="gatewayUrl" placeholder="ws://100.93.80.61:18789">
-    <label for="authToken">Auth Token:</label>
+        <label for="authToken">Auth Token:</label>
     <input type="text" id="authToken" placeholder="Enter your token here">
+    <label for="sessionKey">Session Key:</label>
+    <input type="text" id="sessionKey" placeholder="agent:main:chrome">
     <button id="saveBtn">Save</button>
     <div id="status"></div>
     <script src="options.js"></script>

@@ -7,7 +7,7 @@ It establishes a direct **WebSocket** connection to your remote OpenClaw Gateway
 ## 🚀 Features
 
 - **Direct WebSocket Link**: Connects directly to your OpenClaw Gateway using standard JSON-RPC.
-- **Session Isolation**: Defaults to an isolated session key (`agent:main:notion`) so your workspace chats do not leak into your primary messenger (WhatsApp, Telegram, etc.).
+- **Session Isolation**: Defaults to an isolated session key (`agent:main:chrome`) so your workspace chats do not leak into your primary messenger (WhatsApp, Telegram, etc.).
 - **Robust Keep-Alive**: Automatically maintains connection health with the Gateway via the `health` protocol, ensuring no connection drops.
 
 ## 🛠️ Installation & Setup (Developer Mode)

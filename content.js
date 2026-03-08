@@ -1,7 +1,7 @@
 (function() {
   if (document.getElementById('openclaw-console')) return;
 
-  chrome.storage.local.get({ gatewayUrl: 'ws://100.93.80.61:18789', authToken: '' }, (items) => {
+  chrome.storage.local.get({ gatewayUrl: 'ws://100.93.80.61:18789', authToken: '', sessionKey: 'agent:main:chrome' }, (items) => {
     let wsUrl = items.gatewayUrl;
     if (items.authToken) {
       const separator = wsUrl.includes('?') ? '&' : '?';
@@ -103,7 +103,7 @@
                 method: "chat.send",
                 params: {
                     message: text,
-                    sessionKey: "agent:main:notion"
+                    sessionKey: items.sessionKey
                 },
                 id: Date.now()
             };
