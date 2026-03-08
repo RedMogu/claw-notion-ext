@@ -1,231 +1,195 @@
 (function() {
   if (document.getElementById('openclaw-console')) return;
 
-  chrome.storage.local.get({ gatewayUrl: 'ws://100.93.80.61:18789', authToken: '', sessionKey: 'agent:main:chrome' }, (items) => {
-    let wsUrl = items.gatewayUrl;
-    if (items.authToken) {
-      const separator = wsUrl.includes('?') ? '&' : '?';
-      wsUrl += separator + 'token=' + items.authToken;
-    }
-
-    let ws = null;
-    let pingInterval = null;
-    let reconnectTimeout = null;
-    setTimeout(() => { isEstablished = true; }, 500);
-
-    const container = document.createElement('div');
-    container.id = 'openclaw-console';
-    container.style.position = 'fixed';
-    container.style.bottom = '20px';
-    container.style.right = '20px';
-    container.style.width = '350px';
-    container.style.height = '400px';
-    container.style.backgroundColor = '#2c2c2c';
-    container.style.color = '#ffffff';
-    container.style.border = '1px solid #555';
-    container.style.borderRadius = '8px';
-    container.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
-    container.style.zIndex = '999999';
-    container.style.display = 'flex';
-    container.style.flexDirection = 'column';
-    container.style.fontFamily = 'sans-serif';
-
-    const header = document.createElement('div');
-    header.innerText = 'OpenClaw 控制台';
-    header.style.padding = '8px 12px';
-    header.style.backgroundColor = '#1e1e1e';
-    header.style.borderTopLeftRadius = '8px';
-    header.style.borderTopRightRadius = '8px';
-    header.style.cursor = 'move';
-    header.style.fontWeight = 'bold';
-    header.style.fontSize = '14px';
-    header.style.userSelect = 'none';
-
-    // 用于显示历史对话的区域
-    const historyDiv = document.createElement('div');
-    historyDiv.style.flex = '1';
-    historyDiv.style.padding = '8px';
-    historyDiv.style.overflowY = 'auto';
-    historyDiv.style.display = 'flex';
-    historyDiv.style.flexDirection = 'column';
-    historyDiv.style.gap = '8px';
-    historyDiv.style.fontSize = '13px';
-    historyDiv.style.fontFamily = 'monospace';
-
-    const textarea = document.createElement('textarea');
-    textarea.style.height = '60px';
-    textarea.style.margin = '8px';
-    textarea.style.backgroundColor = '#1e1e1e';
-    textarea.style.color = '#00ff00';
-    textarea.style.border = '1px solid #444';
-    textarea.style.borderRadius = '4px';
-    textarea.style.padding = '8px';
-    textarea.style.resize = 'none';
-    textarea.style.fontFamily = 'monospace';
-    textarea.placeholder = '输入指令并按 Enter 发送...';
-
-    // 封装附加消息的函数
-    function appendMessage(msg, color = '#00ff00') {
-      const msgEl = document.createElement('div');
-      msgEl.style.color = color;
-      msgEl.style.whiteSpace = 'pre-wrap';
-      msgEl.style.wordBreak = 'break-all';
-      msgEl.textContent = msg;
-      historyDiv.appendChild(msgEl);
-      historyDiv.scrollTop = historyDiv.scrollHeight;
-    }
-
-    // 动作2：监听 textarea 的回车键
-    textarea.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault(); // 阻止默认换行
-
-        const text = textarea.value.trim();
-        const selectedDOMText = window.getSelection().toString().trim();
-        const currentUrl = window.location.href;
-        const currentTitle = document.title;
-        let finalMessage = text;
-
-        if (selectedDOMText && text) {
-             finalMessage = `${text}\n\n[Context from ${currentTitle} (${currentUrl})]:\n"""\n${selectedDOMText}\n"""`;
-        } else if (selectedDOMText && !text) {
-             finalMessage = `Please explain or summarize this:\n\n[Context from ${currentTitle} (${currentUrl})]:\n"""\n${selectedDOMText}\n"""`;
-        } else if (text && !selectedDOMText) {
-             finalMessage = `${text}\n\n[User is currently viewing: ${currentTitle} (${currentUrl})]`;
-        }
-
-        if (finalMessage) {
-          appendMessage('You: ' + finalMessage, '#aaaaaa');
-
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            const payload = {
-                jsonrpc: "2.0",
-                method: "chat.send",
-                params: {
-                    message: text,
-                    sessionKey: items.sessionKey
-                },
-                id: Date.now()
-            };
-            console.log('%c[发送到 Gateway]', 'background: #222; color: #f39c12; font-size: 16px; font-weight: bold;', payload);
-            ws.send(JSON.stringify(payload));
-          } else {
-            appendMessage('[System]: WebSocket 未连接', '#ff5555');
-          }
-          textarea.value = '';
-        }
-      }
-    });
-
-    function connectWebSocket() {
-      if (pingInterval) {
-        clearInterval(pingInterval);
-        pingInterval = null;
-      }
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-        reconnectTimeout = null;
-      }
-
-      ws = new WebSocket(wsUrl);
-
-      // 动作3：监听 WebSocket 接收到的消息
-      ws.onmessage = (e) => {
-        console.log('%c[Gateway 原始消息]', 'background: #222; color: #bada55; font-size: 16px; font-weight: bold;', e.data);
-        
-        try {
-          const parsed = JSON.parse(e.data);
-          if (parsed.type === "res" && parsed.id === "1" && parsed.payload?.protocol) {
-            console.log("Gateway Handshake Accepted!", parsed.payload);
-            isEstablished = true;
-            appendMessage('[System]: Gateway 握手成功！', '#55ff55');
-            return;
-          }
-          if (parsed.type === "event" && ["connect.challenge", "tick", "health", "presence"].includes(parsed.event)) return;
-          if (parsed.type === "res" && typeof parsed.id === "string" && parsed.id.startsWith("ping-")) return;
-        } catch(err) {}
-
-        if (!isEstablished) return;
-
-        appendMessage('Server: ' + e.data, '#00aa00');
-      };
-
-      ws.onopen = () => {
-        isEstablished = false;
-        appendMessage(`[System]: WebSocket 已连接 (${wsUrl})`, '#55aaff');
-        
-        // Send proper OpenClaw Connect Request
-        ws.send(JSON.stringify({
-          type: "req",
-          id: "1",
-          method: "connect",
-          params: {
-            minProtocol: 3,
-            maxProtocol: 3,
-            client: {
-              id: "webchat-ui",
-              version: "1.0",
-              platform: "browser",
-              mode: "ui"
-            },
-            auth: {
-              token: items.authToken
-            }
-          }
-        }));
-
-        pingInterval = setInterval(() => {
-          if (ws && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: "req", id: "ping-" + Date.now(), method: "health" }));
-          }
-        }, 30000);
-      };
-
-      ws.onerror = () => {
-        appendMessage('[System]: WebSocket 发生错误', '#ff5555');
-      };
-
-      ws.onclose = () => {
-        appendMessage('[System]: WebSocket 连接断开', '#ffaa00');
-        if (pingInterval) {
-          clearInterval(pingInterval);
-          pingInterval = null;
-        }
-        // 重连机制
-        appendMessage('[System]: 尝试在 3 秒后重连...', '#ffaa00');
-        reconnectTimeout = setTimeout(() => {
-          connectWebSocket();
-        }, 3000);
-      };
-    }
-
-    connectWebSocket();
-
-    container.appendChild(header);
-    container.appendChild(historyDiv);
-    container.appendChild(textarea);
-    document.body.appendChild(container);
-
-    let isDragging = false;
-    let offsetX, offsetY;
-
-    header.addEventListener('mousedown', (e) => {
-      isDragging = true;
-      const rect = container.getBoundingClientRect();
-      offsetX = e.clientX - rect.left;
-      offsetY = e.clientY - rect.top;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-      if (!isDragging) return;
-      container.style.left = (e.clientX - offsetX) + 'px';
-      container.style.top = (e.clientY - offsetY) + 'px';
-      container.style.right = 'auto'; 
-      container.style.bottom = 'auto';
-    });
-
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
-    });
+  let sessionKeyCache = 'agent:main:chrome';
+  chrome.storage.local.get({ sessionKey: 'agent:main:chrome' }, (items) => {
+      sessionKeyCache = items.sessionKey;
   });
+
+  chrome.storage.onChanged.addListener((changes) => {
+      if (changes.sessionKey) {
+          sessionKeyCache = changes.sessionKey.newValue;
+      }
+  });
+
+  const container = document.createElement('div');
+  container.id = 'openclaw-console';
+  container.style.position = 'fixed';
+  container.style.bottom = '20px';
+  container.style.right = '20px';
+  container.style.width = '350px';
+  container.style.height = '400px';
+  container.style.backgroundColor = '#2c2c2c';
+  container.style.color = '#ffffff';
+  container.style.border = '1px solid #555';
+  container.style.borderRadius = '8px';
+  container.style.boxShadow = '0 8px 24px rgba(0,0,0,0.5)';
+  container.style.zIndex = '999999';
+  container.style.display = 'flex';
+  container.style.flexDirection = 'column';
+  container.style.fontFamily = 'sans-serif';
+
+  const header = document.createElement('div');
+  header.innerText = 'OpenClaw Universal';
+  header.style.padding = '8px 12px';
+  header.style.backgroundColor = '#1e1e1e';
+  header.style.borderTopLeftRadius = '8px';
+  header.style.borderTopRightRadius = '8px';
+  header.style.cursor = 'move';
+  header.style.fontWeight = 'bold';
+  header.style.fontSize = '14px';
+  header.style.userSelect = 'none';
+
+  const historyDiv = document.createElement('div');
+  historyDiv.style.flex = '1';
+  historyDiv.style.padding = '8px';
+  historyDiv.style.overflowY = 'auto';
+  historyDiv.style.display = 'flex';
+  historyDiv.style.flexDirection = 'column';
+  historyDiv.style.gap = '8px';
+
+  const inputArea = document.createElement('div');
+  inputArea.style.padding = '8px';
+  inputArea.style.backgroundColor = '#1e1e1e';
+  inputArea.style.borderBottomLeftRadius = '8px';
+  inputArea.style.borderBottomRightRadius = '8px';
+  inputArea.style.display = 'flex';
+  inputArea.style.gap = '8px';
+
+  const textarea = document.createElement('textarea');
+  textarea.style.flex = '1';
+  textarea.style.height = '40px';
+  textarea.style.resize = 'none';
+  textarea.style.backgroundColor = '#333';
+  textarea.style.color = '#fff';
+  textarea.style.border = '1px solid #555';
+  textarea.style.borderRadius = '4px';
+  textarea.style.padding = '4px';
+  textarea.style.outline = 'none';
+  textarea.placeholder = 'Chat or summarize selected text...';
+
+  const sendBtn = document.createElement('button');
+  sendBtn.innerText = 'Send';
+  sendBtn.style.backgroundColor = '#0a7f5a';
+  sendBtn.style.color = '#fff';
+  sendBtn.style.border = 'none';
+  sendBtn.style.borderRadius = '4px';
+  sendBtn.style.padding = '0 12px';
+  sendBtn.style.cursor = 'pointer';
+
+  inputArea.appendChild(textarea);
+  inputArea.appendChild(sendBtn);
+  container.appendChild(header);
+  container.appendChild(historyDiv);
+  container.appendChild(inputArea);
+  document.body.appendChild(container);
+
+  // Simple drag logic
+  let isDragging = false;
+  let offsetX = 0, offsetY = 0;
+  header.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    const rect = container.getBoundingClientRect();
+    offsetX = e.clientX - rect.left;
+    offsetY = e.clientY - rect.top;
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const x = e.clientX - offsetX;
+    const y = e.clientY - offsetY;
+    container.style.right = 'auto';
+    container.style.bottom = 'auto';
+    container.style.left = x + 'px';
+    container.style.top = y + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
+
+  function appendMessage(msg, color) {
+    const msgEl = document.createElement('div');
+    msgEl.style.backgroundColor = color || '#333';
+    msgEl.style.padding = '6px 10px';
+    msgEl.style.borderRadius = '6px';
+    msgEl.style.fontSize = '13px';
+    msgEl.style.lineHeight = '1.4';
+    msgEl.style.whiteSpace = 'pre-wrap';
+    msgEl.style.wordBreak = 'break-all';
+    msgEl.textContent = msg;
+    historyDiv.appendChild(msgEl);
+    historyDiv.scrollTop = historyDiv.scrollHeight;
+  }
+
+  function handleSend() {
+    const text = textarea.value.trim();
+    const selectedDOMText = window.getSelection().toString().trim();
+    const currentUrl = window.location.href;
+    const currentTitle = document.title;
+    let finalMessage = text;
+
+    if (selectedDOMText && text) {
+         finalMessage = `${text}\n\n[Context from ${currentTitle} (${currentUrl})]:\n"""\n${selectedDOMText}\n"""`;
+    } else if (selectedDOMText && !text) {
+         finalMessage = `Please explain or summarize this:\n\n[Context from ${currentTitle} (${currentUrl})]:\n"""\n${selectedDOMText}\n"""`;
+    } else if (text && !selectedDOMText) {
+         finalMessage = `${text}\n\n[User is currently viewing: ${currentTitle} (${currentUrl})]`;
+    }
+
+    if (finalMessage) {
+      appendMessage('You: ' + finalMessage, '#aaaaaa');
+      
+      // Delegate sending to the background script
+      chrome.runtime.sendMessage({ type: 'SEND_CHAT', message: finalMessage }, (response) => {
+          if (response && !response.success) {
+              appendMessage('[System]: ' + (response.error || 'Failed to send via background'), '#ff5555');
+          }
+      });
+      textarea.value = '';
+    }
+  }
+
+  sendBtn.addEventListener('click', handleSend);
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+
+  // Listen for messages FROM the background script
+  chrome.runtime.onMessage.addListener((msg) => {
+      if (msg.type === 'CONNECTION_READY') {
+          appendMessage('[System]: WebSocket Connected', '#0a7f5a');
+      } else if (msg.type === 'GATEWAY_MESSAGE') {
+          const parsed = msg.data;
+          const payload = parsed.payload || parsed.result || {};
+          
+          if (parsed.method === "chat.message" || parsed.event === "chat.message") {
+              if (payload.sessionKey && payload.sessionKey !== sessionKeyCache) {
+                  return;
+              }
+              const role = payload.message?.role || 'system';
+              if (role === 'user') return;
+              
+              const content = payload.message?.content || payload.message?.text || '';
+              if (!content) return;
+              
+              let speaker = "Cat Butler";
+              if (payload.message?.identity?.name) {
+                  speaker = payload.message.identity.name;
+              }
+              appendMessage(speaker + ': ' + content, '#005577');
+          }
+      }
+  });
+
+  // Initial status check
+  chrome.runtime.sendMessage({ type: 'GET_STATUS' }, (response) => {
+      if (response && response.connected) {
+          appendMessage('[System]: WebSocket is ready', '#0a7f5a');
+      } else {
+          appendMessage('[System]: Connecting in background...', '#888');
+      }
+  });
+
 })();
