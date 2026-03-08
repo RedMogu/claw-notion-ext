@@ -79,9 +79,20 @@
     textarea.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault(); // 阻止默认换行
+
         const text = textarea.value.trim();
-        if (text) {
-          appendMessage('You: ' + text, '#aaaaaa');
+        const selectedDOMText = window.getSelection().toString().trim();
+        let finalMessage = text;
+
+        if (selectedDOMText && text) {
+             finalMessage = `${text}\n\n[Selected Context from Webpage]:\n"""\n${selectedDOMText}\n"""`;
+        } else if (selectedDOMText && !text) {
+             finalMessage = `Please explain or summarize this:\n\n"""\n${selectedDOMText}\n"""`;
+        }
+
+        if (finalMessage) {
+          appendMessage('You: ' + finalMessage, '#aaaaaa');
+
           if (ws && ws.readyState === WebSocket.OPEN) {
             const payload = {
                 jsonrpc: "2.0",
