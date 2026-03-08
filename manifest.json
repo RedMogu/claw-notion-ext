@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Claw Notion Ext",
+  "name": "OpenClaw Universal Assistant",
   "version": "1.0.18",
-  "description": "Integration with OpenClaw Gateway for Notion",
+  "description": "A universal side-panel AI assistant for any webpage, powered by OpenClaw Gateway.",
   "permissions": [
     "storage",
     "activeTab",
